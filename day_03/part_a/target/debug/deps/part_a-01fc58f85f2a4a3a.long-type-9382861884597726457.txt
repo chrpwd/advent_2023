@@ -1,0 +1,1 @@
+itertools::Unique<FlatMap<std::slice::Iter<'_, (Coords, u32)>, Map<std::slice::Iter<'_, (i32, i32)>, {closure@src/main.rs:95:34: 95:48}>, {closure@src/main.rs:94:69: 94:79}>>
