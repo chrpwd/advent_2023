@@ -2,43 +2,39 @@ use std::collections::HashSet;
 use std::{fs::read_to_string, io};
 
 use nom::bytes::complete::take_while;
-use nom::character::complete::{line_ending, multispace1};
-use nom::{character::complete::digit1, multi::separated_list1, sequence::preceded, IResult};
-
+use nom::character::complete::multispace1;
+use nom::sequence::preceded;
+use nom::{
+    bytes::complete::tag,
+    character::complete::{
+        digit1, line_ending, space1,
+    },
+    multi::{separated_list1},
+    sequence::{
+        separated_pair, tuple,
+    },
+    IResult, Parser,
+};
 #[derive(Debug)]
 struct Card {
     _id: String,
-    winning_nums: HashSet<i32>,
-    card_nums: HashSet<i32>,
+    winning_nums: HashSet<u32>,
+    card_nums: HashSet<u32>,
 }
 
-fn card_sections(input: &str) -> IResult<&str, HashSet<i32>> {
-    let (input, nums) = separated_list1(multispace1, digit1)(input)?;
-
-    let nums_set: HashSet<i32> = nums.iter().map(|n| n.parse::<i32>().expect("is number")).collect();
-
-    Ok((input, nums_set))
+fn card_sections(input: &str) -> IResult<&str, HashSet<u32>> {
+    separated_list1(multispace1, digit1)
+        .map(|set: Vec<&str>| HashSet::from_iter(set.iter().map(|&e| e.parse::<u32>().expect("Failed to parse")))).parse(input)
 }
 
 fn game(input: &str) -> IResult<&str, Card> {
+
     let (input, id) = preceded(take_while(|c: char| c.is_whitespace() || c.is_alphabetic()), digit1)(input)?;
-    let (input, sets) = preceded(
-        take_while(|c: char| c == ':' || c.is_whitespace()),
-        separated_list1(take_while(|c: char| c == '|' || c.is_whitespace()), card_sections),
-    )(input)?;
-
-    // Clone the vectors before constructing the Card struct
-    let winning_nums = sets[0].clone();
-    let card_nums = sets[1].clone();
-
-    Ok((
-        input,
-        Card {
-            _id: id.trim().to_string(),
-            winning_nums,
-            card_nums,
-        },
-    ))
+    preceded(tuple((tag(":"), space1)), separated_pair(card_sections, take_while(|c: char| c.is_whitespace() || c == '|'), card_sections).map(|(winners, card_nums)| Card {
+        winning_nums: winners,
+        card_nums,
+        _id: id.to_string()
+    })).parse(input)
 }
 
 fn parse_cards(input: &str) -> IResult<&str, Vec<Card>> {
@@ -63,7 +59,7 @@ fn main() {
     
     let points: usize = cards.iter().map(|card| {
 
-       let intersection = card.winning_nums.intersection(&card.card_nums).into_iter().collect::<Vec<&i32>>();
+       let intersection: Vec<&u32> = card.winning_nums.intersection(&card.card_nums).into_iter().collect();
        if intersection.len() > 0 {
         return intersection.iter().skip(1).enumerate().map(|(i, _)| 1 << i).sum::<usize>() + 1
        } else {
