@@ -6,7 +6,7 @@ use std::collections::VecDeque;
 use nom::{
     bytes::complete::{take_while, tag},
     character::complete::{
-        digit1, line_ending, space1,multispace1
+        digit1, line_ending, space1
     },
     multi::separated_list1,
     sequence::{
@@ -24,7 +24,7 @@ struct Card {
 }
 
 fn card_sections(input: &str) -> IResult<&str, HashSet<u32>> {
-    separated_list1(multispace1, digit1)
+    separated_list1(space1, digit1)
         .map(|set: Vec<&str>| HashSet::from_iter(set.iter().map(|&e| e.parse::<u32>().expect("Failed to parse")))).parse(input)
 }
 
@@ -64,10 +64,9 @@ fn main() {
 
     )).collect();
 
-
     let mut dq: VecDeque<usize> = VecDeque::from(vec![0; data.len()]);
 
-    let result = data.iter().enumerate().fold(data.len(), |mut acc, (index, score)| {
+    let result = data.iter().fold(data.len(), |mut acc, score| {
         let copies = dq.pop_front().unwrap();
         let gained = cmp::min(*score, dq.len());
 
