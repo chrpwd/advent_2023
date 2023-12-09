@@ -70,7 +70,7 @@ fn main() {
         let copies = dq.pop_front().unwrap();
         let gained = cmp::min(*score, dq.len());
 
-        let added_copies =vec![1 * copies; gained];
+        let added_copies =vec![copies; gained];
 
         dq = dq.iter()
             .zip(added_copies.iter().chain(iter::repeat(&0)))
