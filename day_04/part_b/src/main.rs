@@ -64,16 +64,16 @@ fn main() {
 
     )).collect();
 
-    let mut dq: VecDeque<usize> = VecDeque::from(vec![0; data.len()]);
+    let mut dq: VecDeque<usize> = VecDeque::from(vec![1; data.len()]); //init to original copies
 
-    let result = data.iter().fold(data.len(), |mut acc, score| {
+    let result = data.iter().fold(0, |mut acc, score| {
         let copies = dq.pop_front().unwrap();
         let gained = cmp::min(*score, dq.len());
 
-        let real_copies =vec![1 * (copies + 1); gained];
+        let added_copies =vec![1 * copies; gained];
 
         dq = dq.iter()
-            .zip(real_copies.iter().chain(iter::repeat(&0)))
+            .zip(added_copies.iter().chain(iter::repeat(&0)))
             .map(|(&a, &b)| a + b)
             .collect();
 
