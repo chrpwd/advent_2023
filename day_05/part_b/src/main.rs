@@ -75,12 +75,17 @@ fn main() {
     let input = s.as_str();
     let (_, (seeds, maps)) = parse_seeds(input).expect("to parse correctly");
 
-    let locations = seeds.iter().flat_map(|range| range.clone().into_iter()).collect::<Vec<u64>>();
-    
-    let locations = locations.into_iter().progress().map(|seed| {
-        maps.iter().fold(seed, |seed, map| map.translate(seed))
-    }).collect::<Vec<u64>>();
+    let minimum_location = seeds
+        .into_iter()
+        // .progress_count(count)
+        .flat_map(|range| range.clone())
+        .map(|seed| {
+            maps.iter().progress()
+                .fold(seed, |seed, map| map.translate(seed))
+        })
+        .min();
 
 
-    println!("LOCATION: {}", locations.iter().min().expect("should have minimum value").to_string());
+
+    println!("LOCATION: {}", minimum_location.expect("min value"));
 }
